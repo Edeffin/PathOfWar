@@ -132,9 +132,14 @@ class Edge:
         return str(self.p1) + " <--> " + str(self.p2)
 
 class Cell:
-    def __init__(self, site, edges):
+    def __init__(self, site, edges = None):
         self.site = site
-        self.edges = edges
+        if (edges):
+            self.edges = edges
+        else:
+            self.edges = EdgeSet()
+    def add_edge(self, e):
+        self.edges.add(e)
     def __hash__(self):
         result = hash(self.site)
         for e in self.edges:
@@ -150,7 +155,7 @@ class Cell:
                 return False
         return True
     def __str__(self):
-        return str(self.site) + ": " + str(self.edges)
+        return str(self.site) + ": [" + str(self.edges) + "]"
 
 
 def generate_voronoi(w, h, sites):
@@ -168,7 +173,9 @@ def generate_voronoi(w, h, sites):
         ps = [Point((mpx, mpy)), Point((x * 10 * w, mpy)), Point((mpx, y * 10 * h))]
         e = EdgeSet([Edge(ps[0], ps[1]), Edge(ps[1], ps[2]), Edge(ps[2], ps[0])])
         C.add(Cell(s, e))
-    print(C)
+    for c, s in enumerate(S):
+        new_cell = Cell(s)
+        print(c, new_cell)
 
 points = np.random.rand(1000, 2)
 sites = np_to_points(s)
