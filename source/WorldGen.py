@@ -9,8 +9,10 @@ def np_to_points(p):
     return l
 
 class SiteSet:
-    def __init__(self, sites):
+    def __init__(self, sites = None):
         self.sites = {}
+        if (sites == None or len(sites) == 0):
+            return
         for p in sites:
             self.sites[p] = None
     def __iter__(self):
@@ -34,10 +36,14 @@ class SiteSet:
         for i in range(len(self)):
             result += str(self[i]) + ", "
         return result[:-2]
+    def add(self, p):
+        self.sites[p] = None
 
 class EdgeSet:
-    def __init__(self, edges):
+    def __init__(self, edges = None):
         self.edges = {}
+        if (edges == None or len(edges) == 0):
+            return
         for e in edges:
             self.edges[e] = None
     def __iter__(self):
@@ -61,10 +67,14 @@ class EdgeSet:
         for i in range(len(self)):
             result += str(self[i]) + " + "
         return result[:-3]
+    def add(self, e):
+        self.edges[e] = None
 
 class CellSet:
-    def __init__(self, cells):
+    def __init__(self, cells = None):
         self.cells = {}
+        if (cells == None or len(cells) == 0):
+            return
         for c  in cells:
             self.cells[c] = None
     def __iter__(self):
@@ -88,6 +98,8 @@ class CellSet:
         for i in range(len(self)):
             result += str(self[i]) + "\n"
         return result[:-1]
+    def add(self, c):
+        self.cells[c] = None
 
 
 class Point:
@@ -96,9 +108,9 @@ class Point:
     def __getitem__(self, key):
         return self.p[key]
     def __hash__(self):
-        return int(self.p.sum() * 1000)
+        return int((self.p[0] + self.p[1]) * 1000)
     def __eq__(self, other):
-        if ((self.p == other.p).all()):
+        if (self.p[0] == other.p[0] and self.p[1] == other.p[1]):
             return True
         return False
     def __str__(self):
@@ -141,17 +153,23 @@ class Cell:
         return str(self.site) + ": " + str(self.edges)
 
 
-class Voronoi:
-    def __init__(self, w, h, sites):
-        pass
+def generate_voronoi(w, h, sites):
+    S = SiteSet(sites)
+    E = EdgeSet()
+    C = CellSet()
+    signs = [(-1, -1), (-1, 1), (1, 1), (1, -1)]
+    mpx, mpy = (w / 2, h / 2)
+    for i in range(4):
+        x, y = signs[i]
+        sx, sy = mpx, mpy
+        sx += 1.5 * w * x
+        sy += 1.5 * h * y
+        s = Point((sx, sy))
+        ps = [Point((mpx, mpy)), Point((x * 10 * w, mpy)), Point((mpx, y * 10 * h))]
+        e = EdgeSet([Edge(ps[0], ps[1]), Edge(ps[1], ps[2]), Edge(ps[2], ps[0])])
+        C.add(Cell(s, e))
+    print(C)
 
-s = np.random.rand(1000, 2)
-sp = np_to_points(s)
-ss = SiteSet(sp)
-e = [Edge(ss[0], ss[5]), Edge(ss[65], ss[93]), Edge(ss[2], ss[234])]
-es = EdgeSet(e)
-c = [Cell(ss[1], es), Cell(ss[2], es), Cell(ss[3], es)]
-cs = CellSet(c)
-print(cs)
-for c, v in enumerate(cs):
-    print(c, v)
+points = np.random.rand(1000, 2)
+sites = np_to_points(s)
+r = generate_voronoi(1, 1, sites)
